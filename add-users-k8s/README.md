@@ -1,12 +1,14 @@
-###Create a service/user account in Kubernetes and restrict it to one namespace using RBAC
+### Create a service/user account in Kubernetes and restrict it to one namespace using RBAC
 run manifest file
 Get the service account token that will be used to access Kubernetes from the dashboard or through the kubectl command line.
 ````
-kubectl -n ${NAMESPACE} describe secret $(kubectl -n ${NAMESPACE} get secret | (grep demo-sa-secret || echo "$_") | awk '{print $1}') | grep token: | awk '{print $2}'\n
+kubectl -n ${NAMESPACE} describe secret $(kubectl -n ${NAMESPACE} get secret | (grep demo-sa-secret |
+| echo "$_") | awk '{print $1}') | grep token: | awk '{print $2}'\n
 ````
 Get certificate details:
 ````
-kubectl  -n ${NAMESPACE} get secret `kubectl -n ${NAMESPACE} get secret | (grep ${K8S_USER} || echo "$_") | awk '{print $1}'` -o "jsonpath={.data['ca\.crt']}"
+kubectl  -n ${NAMESPACE} get secret `kubectl -n ${NAMESPACE} get secret | (grep ${K8S_USER} |
+| echo "$_") | awk '{print $1}'` -o "jsonpath={.data['ca\.crt']}"
 ````
 Creating a kubectl configuration
 If you want to set up kubectl with the credentials you received, it would look something like this:
