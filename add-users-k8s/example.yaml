@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: namespace-admin
+  namespace: net
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: admin-secret
+  namespace: net
+  annotations:
+    kubernetes.io/service-account.name: namespace-admin
+type: kubernetes.io/service-account-token
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: namespace-admin
+  namespace: net
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["batch"]
+  resources:
+  - jobs
+  - cronjobs
+  verbs: ["*"]
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: namespace-admin
+  namespace: net
+subjects:
+- kind: ServiceAccount
+  name: namespace-admin
+  namespace: net
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: namespace-admin
