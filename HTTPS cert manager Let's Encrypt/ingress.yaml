@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: main-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - app-1.example.com
+    - app-2.example.com
+    secretName: app-tls
+  rules:
+   - host: app-1.example.com
+     http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: app-service-1
+                port: 
+                  number: 80
+   - host: app-2.example.com
+     http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: app-service-2
+                port: 
+                  number: 80
