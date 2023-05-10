@@ -1,0 +1,140 @@
+kubernetes commands
+
+kubectl get pods && kubectl get services --all-namespaces
+
+kubectl get nodes - список нодов
+
+kubectl taint nodes --all node-role.kubernetes.io/master- - запуска подов на мастере.
+
+kubectl get pod redis --watch
+
+kubectl delete service,deployment nginx - удалить сервис и поды nginx
+
+kubectl get pod NAME --output=yaml - показать значение пода
+
+kubectl get deploy elasticsearch -o yaml - показать deployment в yaml
+
+kubectl describe pod NAME --namespace=NAME - показать значения пода 
+
+kubectl delete pod NAME --grace-period=0 --force
+
+kubectl logs NAME - посмотреть логи контейнера
+
+kubectl logs -f NAME - посмотреть логи контейнера в интерактивном режиме
+
+kubectl exec -ti NAME bash - интерактивный режим bash
+
+kubectl expose deployment nginx --type=NodePort --port=80 - выставить сервис наружу
+
+kubectl create -f ingress.yml - создание точки входа ingress
+
+kubectl delete service NAME -n NAMESPACE
+
+kubectl delete service NAME
+
+kubectl delete deployment NAME
+
+kubectl get deployments - вывести список Deployments
+
+kubectl get rs - список ReplicaSet
+
+kubectl rollout history deployment/nginx
+
+kubectl set resources deployment/nginx -c=nginx --limits=cpu=200m,memory=512Mi
+
+kubectl exec -ti -n monitoring prometheus-deployment-6bf45557bd-f5bvx -- /bin/sh
+
+ubectl --namespace kube-system delete deployment kubernetes-dashboard
+
+==================rollout and rollback===============
+
+kubectl set image deployment.v1.apps/nginx-deployment nginx=nginx:1.91 --record=true
+
+kubectl describe deployment - описать развертывание
+
+kubectl rollout history deployment/nginx - вывод истории развертывания
+
+kubectl rollout history deployment/nginx --revision=1 - описание истории ревизии №1
+
+kubectl rollout undo deployment/nginx --to-revision=2 - откат к ревизии 2
+
+kubectl rollout status - проверить состояние развертывания
+
+==================scale=================================
+
+kubectl scale deployment/nginx --replicas=10
+
+===================Cronjobs=============================
+
+kubectl create -f cronjob.yml
+
+kubectl get cronjob NAME
+
+kubectl delete cronjob NAME
+
+kubectl get jobs --watch
+
+========================Configmap================================
+kubectl get configmap NAME -n NAMESPACE
+
+kubectl describe configmap NAME -n NAMESPACE
+
+kubectl delete configmap NAME -n NAMESPACE
+
+=======================proxy=====================================
+
+kubectl proxy --address="192.168.0.105" -p 8001 --accept-hosts='^*$'
+
+=====================clusterrole=================================
+
+kubectl delete clusterrolebinding cluster-system-anonymous - удаление роли в кластере
+
+kubectk get clusterrole - вывод списка ролей
+
+kubectl get clusterrole system:NAME -o yaml
+
+oc create clusterrolebinding grafana1 --clusterrole=cluster-monitoring-operator --user=grafana1
+====================volumes======================================
+kubectl get pv NAME - вывод списка томов PersistantVolume
+
+kubectl delete pv NAME - удаление тома PersistantVolume
+
+kubectl delete pvc NAME - удаление claim
+
+kubectl get pvc NAME_PV - Вывод списка claim для PersistantVolume
+
+grafana-pv-volume - описание pvc
+
+======================secrets====================================
+kubectl create secret generic db-user-pass --from-file=./username.txt --from-file=./password.txt - создать secret db-user-pass на основе файлов
+
+kubectl get secrets - вывод списка для secrets
+
+kubectl describe secrets/db-user-pass
+
+kubectl get secret db-user-pass -o yaml - вывод логина и пароля secret db-user-pass
+
+kubectl -n kube-system describe secret deployment-controller-token-9pn6n - получить token для дашборда
+=====================network=====================================
+
+kubectl expose deployment hello-world --type=LoadBalancer --name=my-service - создание Service для Deployment hello-world с типом лоадбалансера.
+
+=====================load balancer===============================
+1. Пример лоад балансера между 5 подами.
+
+kubectl run hello-world --replicas=5 --labels="run=load-balancer-example" --image=gcr.io/google-samples/node-hello:1.0  --port=8080
+
+kubectl expose deployment hello-world --type=LoadBalancer --name=my-service
+====================================kube-adm======================
+kubectl -n kube-system get cm kubeadm-config -oyaml - Просмотр ControlPlaneEndpoint для изменения IP для kube-api
+kubectl -n kube-system edit cm kubeadm-config -oyaml - Редактируем ControlPlaneEndpoint для изменения IP для kube-api
+===================================INTERACTIVE CONTAINER===========================================
+kubectl run -i --tty --rm debug --image=python:3.8.0b1-slim --restart=Never -- sh
+=================================ROLES Troubleshooting=============================================
+oc adm policy add-role-to-user admin nurlan -n load-test - добавить роль админа на namespace load-test для юзера nurlan 
+oc get rolebinding.rbac -n openshift-monitoring
+oc describe rolebinding.rbac -n NAMESPACE
+oc get clusterrole - список ролей
+oc get clusterrolebind - список clusterrolebinding
+oc create clusterrolebinding grafana1 --clusterrole=cluster-monitoring-operator --user=grafana1 - создание clusterrolebinding с названием  grafana1 для юзера grafana1
+oc get clusterrolebinding grafana1 - показать role binding для пользователя grafana1
