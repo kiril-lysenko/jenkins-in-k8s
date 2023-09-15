@@ -1,0 +1,2 @@
+doskey k=kubectl $*
+#open cmd  & enter command
