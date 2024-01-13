@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibana-config
+  namespace: elasticsearch
+data:
+  kibana.yml:
+    server.publicBaseUrl: https://elastic.twnsnd.online
+    server.host: "0.0.0.0"
+    server.shutdownTimeout: "5s"
+    elasticsearch.hosts: [ "http://elasticsearch:9200" ]
+    monitoring.ui.container.elasticsearch.enabled: true
+    xpack.encryptedSavedObjects.encryptionKey: f9cd92d3834129433fb0404740b5e89c
+    xpack.reporting.encryptionKey: e3de4fcf3fb5e6f973ce024121ead576
+    xpack.security.encryptionKey: 4afebd157537e0f1b2c0b8deddff6b68
+  SERVER_NAME: "elastic.twnsnd.online"
+  ELASTICSEARCH_HOSTS: "http://elasticsearch.elasticsearch.svc.cluster.local:9200"
+  ELASTICSEARCH_USERNAME: "kibana_system"
