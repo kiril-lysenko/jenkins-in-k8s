@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: elasticsearch
+  labels:
+    app: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - kibana
+              topologyKey: kubernetes.io/hostname
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - kibana
+                topologyKey: topology.kubernetes.io/zone
+      containers:
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:8.3.2
+          resources:
+            limits:
+              cpu: "1000m"
+              memory: "1024Mi"
+            requests:
+              cpu: "100m"
+              memory: "512Mi"
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  name: kibana-config
+                  key: ELASTICSEARCH_HOSTS
+            - name: SERVER_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: kibana-config
+                  key: SERVER_NAME
+            - name: ELASTICSEARCH_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: kibana-config
+                  key: ELASTICSEARCH_USERNAME
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kibana-credentials
+                  key: ELASTICSEARCH_PASSWORD
+          ports:
+            - containerPort: 5601
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - name: kibana-certificates
+              mountPath: /usr/share/kibana/config/certs
+            - name: kibana-yml
+              mountPath: /usr/share/kibana/config/kibana.yml
+              subPath: kibana.yml
+      volumes:
+        - name: kibana-certificates
+          secret:
+            secretName: elastic-certificate-pem
+        - name: kibana-yml
+          configMap:
+            name: kibana-config
+            items:
+              - key: kibana.yml
+                path: kibana.yml
