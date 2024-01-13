@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: elasticsearch
+spec:
+  serviceName: elasticsearch
+  replicas: 1
+  updateStrategy:
+    type: OnDelete
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+        - name: increase-vm-max-map
+          image: busybox
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          command: [ "sysctl", "-w", "vm.max_map_count=262144" ]
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.3.2
+        env:
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NODE_MASTER
+          valueFrom:
+            configMapKeyRef:
+              name: elasticsearch-config
+              key: NODE_MASTER
+        - name: NODE_DATA
+          valueFrom:
+            configMapKeyRef:
+              name: elasticsearch-config
+              key: NODE_DATA
+        - name: NUMBER_OF_MASTERS
+          valueFrom:
+            configMapKeyRef:
+              name: elasticsearch-config
+              key: NUMBER_OF_MASTERS
+        - name: NUMBER_OF_REPLICAS
+          valueFrom:
+            configMapKeyRef:
+              name: elasticsearch-config
+              key: NUMBER_OF_REPLICAS
+        - name: ES_JAVA_OPTS
+          valueFrom:
+            configMapKeyRef:
+              name: elasticsearch-config
+              key: ES_JAVA_OPTS
+        - name: ES_PORT
+          value: "9200"
+        - name: ELASTIC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elastic-credentials
+              key: ELASTIC_PASSWORD
+        ports:
+        - containerPort: 9200
+          name: rest
+          protocol: TCP
+        - containerPort: 9300
+          name: transport
+          protocol: TCP
+        volumeMounts:
+          - name: elasticsearch-data
+            mountPath: /usr/share/elasticsearch/data
+          - name: elasticsearch-yml
+            mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+            subPath: elasticsearch.yml
+          - name: elastic-certificates
+            mountPath: /usr/share/elasticsearch/config/certs
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "1000m"
+            memory: "3Gi"     
+      volumes:
+        - name: elasticsearch-yml
+          configMap:
+            name: elasticsearch-config
+            items:
+              - key: elasticsearch.yml
+                path: elasticsearch.yml
+        - name: elastic-certificates
+          secret:
+            secretName: elastic-certificate-pem
+        
+  volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+        annotations:
+          storageClassName: local
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 30Gi
