@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingres-efk
+  namespace: elasticsearch
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - elastic.twnsnd.online
+    - elastic.freenance.store
+    secretName: app-tls
+  rules:
+    - host: elastic.twnsnd.online
+      http:
+          paths:
+            - pathType: Prefix
+              path: /
+              backend:
+                service:
+                  name: kibana
+                  port: 
+                    number: 80
+    - host: elastic.freenance.store
+      http:
+          paths:
+            - pathType: Prefix
+              path: /
+              backend:
+                service:
+                  name: kibana
+                  port: 
+                    number: 80
